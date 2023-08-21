@@ -1,27 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth')
 
 router.post('/users', async (req, res) => {
   try {
     const { name, email, password, age } = req.body;
 
+    const hashPassword = await bcrypt.hash(password, 8);
+
     const user = new User({
       name,
       email,
-      password,
+      password: hashPassword,
       age,
     });
 
+    const token = await user.generateAuthToken();
     await user.save();
-    res.status(201).json({ message: 'User created!' });
+    res.status(201).json({ message: 'User created!', user, token });
   } catch (error) {
-    res.status(500).json({ error: 'unable to create user!' });
     console.error(error);
+    res.status(500).json({ error: 'Unable to create user!' });
   }
 });
 
-router.get('/alluser', async (req, res) => {
+router.post('/user/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials!' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid credentials!' });
+    }
+
+    const token = jwt.sign({ userId: user._id }, 'your-secret-key', {
+      expiresIn: '1h',
+    });
+
+    res.status(200).json({ user, token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error while logging in!' });
+  }
+});
+
+router.get('/alluser',auth, async (req, res) => {
   try {
     const user = await User.find();
 
