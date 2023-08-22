@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const userSchema = mongoose.Schema(
   {
@@ -57,11 +58,7 @@ const userSchema = mongoose.Schema(
 
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
-  const token = jwt.sign({ _id: user._id.toString() }, 'taskappauthtoken');
-
-  if (!user.tokens) {
-    user.tokens = [];
-  }
+  const token = jwt.sign({ _id: user._id.toString() }, process.env.apiKey);
 
   user.tokens = user.tokens.concat({ token });
   await user.save();
