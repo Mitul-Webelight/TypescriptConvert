@@ -9,6 +9,7 @@ const taskAdd = async (req, res) => {
     const task = new Task({
       description,
       completed,
+      owner: req.user._id,
     });
 
     await task.save();
@@ -21,7 +22,23 @@ const taskAdd = async (req, res) => {
 
 const allTaskList = async (req, res) => {
   try {
-    const task = await Task.find();
+    const completed = req.query.completed;
+
+    const filter = {};
+
+    if (completed === 'true') {
+      filter.completed = true;
+    } else if (completed === 'false') {
+      filter.completed = false;
+    }
+
+    const limit = parseInt(req.query.limit);
+    const skip = parseInt(req.query.skip);
+    const sort = req.query.sortBy
+
+    const taskResult = Task.find(filter).limit(limit).skip(skip).sort(sort);
+    const task = await taskResult.exec();
+
 
     res.status(200).json(task);
   } catch (error) {
@@ -29,6 +46,7 @@ const allTaskList = async (req, res) => {
     res.status(500).json({ error: message.error_500 });
   }
 };
+
 const taskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);

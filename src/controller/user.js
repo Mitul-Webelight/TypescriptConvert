@@ -8,7 +8,7 @@ const userAdd = async (req, res) => {
   try {
     const { name, email, password, age } = req.body;
 
-    const existingUser = await User.find({ email });
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({ error: message.error_400 });
@@ -48,9 +48,7 @@ const userLogin = async (req, res) => {
       return res.status(401).json({ error: message.error_401 });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.apiKey, {
-      expiresIn: '1h',
-    });
+    const token = await user.generateAuthToken();
 
     res.status(200).json({ user, token });
   } catch (error) {
