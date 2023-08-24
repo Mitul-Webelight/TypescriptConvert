@@ -1,11 +1,35 @@
 const express = require('express');
 const userRouter = require('./router/user');
 const taskRouter = require('./router/task');
+const multer = require('multer');
+const message = require('./util/messages');
 require('./db/mongoose');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT;
+
+const upload = multer({
+  dest: 'images',
+  limits: {
+    fieldSize: 1000000,
+  },
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/\.(doc|docx)$/)) {
+      return cb(new Error(message.error_wordFileUpload));
+    }
+
+    cb(undefined, true);
+  },
+});
+
+app.post('/upload', upload.single('upload'), (req, res) => {
+  try {
+    res.send(message.success_upload);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
 app.use(express.json());
 
@@ -15,18 +39,3 @@ app.use(taskRouter);
 app.listen(port, () => {
   console.log(`Server is runing on ${port}`);
 });
-
-// const Task = require('./models/task')
-// const User = require('./models/user')
-
-// const main = async () => {
-//     const task = await Task.findById('5c2e505a3253e18a43e612e6')
-//     await task.populate('owner').execPopulate()
-//     console.log(task.owner)
-
-//     // const user = await User.findById('5c2e4dcb5eac678a23725b5b')
-//     // await user.populate('tasks').execPopulate()
-//     // console.log(user.tasks)
-// }
-
-// main()

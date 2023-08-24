@@ -2,6 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const message = require('../util/messages');
+const multer = require('multer');
 require('dotenv').config();
 
 const userAdd = async (req, res) => {
@@ -147,6 +148,41 @@ const userDelete = async (req, res) => {
   }
 };
 
+const upload = multer(
+  {
+    limits: {
+      fieldSize: 100000000,
+    },
+    fileFilter(req, file, cb) {
+      if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+        return cb(new Error(message.error_imageFileUpload));
+      }
+
+      cb(undefined, true);
+    },
+  },
+  (error, res, req, next) => {
+    res.status(400).send({ error: error.message });
+  }
+);
+
+const uploadAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: message.error_404 });
+    }
+
+    req.user.avatar = req.file.buffer;
+    await req.user.save();
+    res.status(200).send({ message: message.success_upload });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: message.error_500 });
+  }
+};
+
 module.exports = {
   userAdd,
   userLogin,
@@ -156,4 +192,6 @@ module.exports = {
   userById,
   userUpdate,
   userDelete,
+  uploadAvatar,
+  upload,
 };

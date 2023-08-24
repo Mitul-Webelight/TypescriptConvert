@@ -19,4 +19,11 @@ router.put('/user/:id', auth, userController.userUpdate);
 
 router.delete('/user/:id', auth, userController.userDelete);
 
+router.post(
+  '/user/:id/avatar',
+  auth,
+  userController.upload.single('avatar'),
+  userController.uploadAvatar
+);
+
 module.exports = router;

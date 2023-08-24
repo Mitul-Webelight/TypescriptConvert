@@ -50,6 +50,9 @@ const userSchema = mongoose.Schema(
         },
       },
     ],
+    avatar: {
+      type: Buffer,
+    },
   },
   {
     versionKey: false,

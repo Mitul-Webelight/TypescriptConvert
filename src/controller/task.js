@@ -34,11 +34,10 @@ const allTaskList = async (req, res) => {
 
     const limit = parseInt(req.query.limit);
     const skip = parseInt(req.query.skip);
-    const sort = req.query.sortBy
+    const sort = req.query.sortBy;
 
     const taskResult = Task.find(filter).limit(limit).skip(skip).sort(sort);
     const task = await taskResult.exec();
-
 
     res.status(200).json(task);
   } catch (error) {
