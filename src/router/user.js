@@ -1,29 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const userController = require('../controller/user');
+const {
+  userAdd,
+  userLogin,
+  userLogout,
+  userLogoutAll,
+  allUsersList,
+  userById,
+  userUpdate,
+  userDelete,
+  uploadAvatar,
+  deleteAvatar,
+  getUserAvatar,
+  upload,
+} = require('../controller/user');
 
-router.post('/users', userController.userAdd);
+router.post('/users', userAdd);
 
-router.post('/user/login', auth, userController.userLogin);
+router.post('/user/login', auth, userLogin);
 
-router.post('/user/logout', auth, userController.userLogout);
+router.post('/user/logout', auth, userLogout);
 
-router.post('/user/logoutAll', auth, userController.userLogoutAll);
+router.post('/user/logoutAll', auth, userLogoutAll);
 
-router.get('/allusers', auth, userController.allUsersList);
+router.get('/allusers', allUsersList);
 
-router.get('/user/:id', auth, userController.userById);
+router.get('/user/:id', auth, userById);
 
-router.put('/user/:id', auth, userController.userUpdate);
+router.put('/user/:id', auth, userUpdate);
 
-router.delete('/user/:id', auth, userController.userDelete);
+router.delete('/user/:id', auth, userDelete);
 
-router.post(
-  '/user/:id/avatar',
-  auth,
-  userController.upload.single('avatar'),
-  userController.uploadAvatar
-);
+router.post('/user/:id/avatar', auth, upload.single('avatar'), uploadAvatar);
+
+router.delete('/user/:id/avatar', deleteAvatar);
+
+router.get('/user/:id/avatar', getUserAvatar);
 
 module.exports = router;

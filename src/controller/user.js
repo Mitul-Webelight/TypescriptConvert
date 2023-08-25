@@ -1,8 +1,9 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const message = require('../util/messages');
+const sharp = require('sharp');
 const multer = require('multer');
+const { sendWelcomEmail } = require('../emails/account');
 require('dotenv').config();
 
 const userAdd = async (req, res) => {
@@ -23,7 +24,7 @@ const userAdd = async (req, res) => {
       password: hashPassword,
       age,
     });
-
+    sendWelcomEmail(user.email, user.name);
     const token = await user.generateAuthToken();
     await user.save();
     res.status(201).json({ message: message.success_201, user, token });
@@ -169,17 +170,51 @@ const upload = multer(
 const uploadAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-
+    const buffer = await sharp(req.file.buffer)
+      .resize({ width: 300, height: 300 })
+      .png()
+      .toBuffer();
     if (!user) {
       return res.status(404).json({ message: message.error_404 });
     }
 
-    req.user.avatar = req.file.buffer;
-    await req.user.save();
-    res.status(200).send({ message: message.success_upload });
+    user.avatar = buffer;
+    await user.save();
+    res.status(200).json({ message: message.success_upload });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: message.error_500 });
+    res.status(500).json({ error: message.error_500 });
+  }
+};
+
+const deleteAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: message.error_404 });
+    }
+    user.avatar = undefined;
+    await user.save();
+    res.status(200).json({ message: message.success_200 });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: message.error_500 });
+  }
+};
+
+const getUserAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user || !user.avatar) {
+      return res.status(404).json({ message: message.error_404 });
+    }
+    res.set('Content-Type', 'image/jpeg');
+    res.status(200).send(user.avatar);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: message.error_500 });
   }
 };
 
@@ -193,5 +228,7 @@ module.exports = {
   userUpdate,
   userDelete,
   uploadAvatar,
+  deleteAvatar,
+  getUserAvatar,
   upload,
 };

@@ -1,5 +1,6 @@
 const Task = require('../models/task');
 const message = require('../util/messages');
+const { successRes, errorRes } = require('../util/response');
 require('dotenv').config();
 
 const taskAdd = async (req, res) => {
@@ -13,9 +14,9 @@ const taskAdd = async (req, res) => {
     });
 
     await task.save();
-    res.status(201).json({ message: message.success_201, task });
+    successRes(res, { task }, 201, message.success_201);
   } catch (error) {
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
     console.error(error);
   }
 };
@@ -95,7 +96,7 @@ const taskDelete = async (req, res) => {
     res.status(200).json({ message: message.success_200, task });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    successRes(res, { data, statuscode, message });
   }
 };
 
