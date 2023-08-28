@@ -18,13 +18,13 @@ const {
 
 router.post('/users', userAdd);
 
-router.post('/user/login', auth, userLogin);
+router.post('/user/login', userLogin);
 
 router.post('/user/logout', auth, userLogout);
 
 router.post('/user/logoutAll', auth, userLogoutAll);
 
-router.get('/allusers', allUsersList);
+router.get('/allusers', auth, allUsersList);
 
 router.get('/user/:id', auth, userById);
 
@@ -34,8 +34,8 @@ router.delete('/user/:id', auth, userDelete);
 
 router.post('/user/:id/avatar', auth, upload.single('avatar'), uploadAvatar);
 
-router.delete('/user/:id/avatar', deleteAvatar);
+router.delete('/user/:id/avatar', auth, deleteAvatar);
 
-router.get('/user/:id/avatar', getUserAvatar);
+router.get('/user/:id/avatar', auth, getUserAvatar);
 
 module.exports = router;

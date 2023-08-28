@@ -1,5 +1,11 @@
 const Task = require('../models/task');
-const message = require('../util/messages');
+const {
+  success_200,
+  success_201,
+  error_400,
+  error_404,
+  error_500,
+} = require('../util/messages');
 const { successRes, errorRes } = require('../util/response');
 require('dotenv').config();
 
@@ -14,9 +20,9 @@ const taskAdd = async (req, res) => {
     });
 
     await task.save();
-    successRes(res, { task }, 201, message.success_201);
+    successRes(res, { task }, 201, success_201);
   } catch (error) {
-    errorRes(res, 500, message.error_500);
+    errorRes(res, 500, error_500);
     console.error(error);
   }
 };
@@ -33,17 +39,18 @@ const allTaskList = async (req, res) => {
       filter.completed = false;
     }
 
-    const limit = parseInt(req.query.limit);
-    const skip = parseInt(req.query.skip);
-    const sort = req.query.sortBy;
+    const { limit, skip, sortBy: sort } = req.query;
 
-    const taskResult = Task.find(filter).limit(limit).skip(skip).sort(sort);
-    const task = await taskResult.exec();
+    const task = await Task.find(filter)
+      .limit(limit)
+      .skip(skip)
+      .sort(sort)
+      .exec();
 
-    successRes(res, { task }, 200, message.success_200);
+    successRes(res, { task }, 200, success_200);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, message.error_500);
+    errorRes(res, 500, error_500);
   }
 };
 
@@ -52,12 +59,12 @@ const taskById = async (req, res) => {
     const task = await Task.findById(req.params.id);
 
     if (!task) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 404, error_404);
     }
-    successRes(res, { task }, 200, message.success_200);
+    successRes(res, { task }, 200, success_200);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, message.error_500);
+    errorRes(res, 500, error_500);
   }
 };
 
@@ -66,7 +73,7 @@ const taskUpdate = async (req, res) => {
     const task = await Task.findByIdAndUpdate(req.params.id);
 
     if (!task) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 404, error_404);
     }
 
     const { description, completed } = req.body;
@@ -78,10 +85,46 @@ const taskUpdate = async (req, res) => {
 
     await task.save();
 
-    successRes(res, { task }, 200, message.success_200);
+    successRes(res, { task }, 200, success_200);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, message.error_500);
+    errorRes(res, 500, error_500);
+  }
+};
+
+const updateMultipleTasks = async (req, res) => {
+  try {
+    const { tasks } = req.body;
+
+    if (tasks.length === 0) {
+      return errorRes(res, 400, error_400);
+    }
+
+    const updatedTasks = [];
+
+    for (const taskData of tasks) {
+      const task = await Task.findById(taskData.id);
+
+      if (!task) {
+        return errorRes(res, 404, error_404);
+      }
+
+      if (taskData.description !== undefined) {
+        task.description = taskData.description;
+      }
+
+      if (taskData.completed !== undefined) {
+        task.completed = taskData.completed;
+      }
+
+      await task.save();
+      updatedTasks.push(task);
+    }
+
+    successRes(res, { tasks }, 200, success_200);
+  } catch (error) {
+    console.error(error);
+    errorRes(res, 500, error_500);
   }
 };
 
@@ -90,13 +133,13 @@ const taskDelete = async (req, res) => {
     const task = await Task.findByIdAndDelete(req.params.id);
 
     if (!task) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 404, error_404);
     }
 
-    successRes(res, {task}, 200, message.success_200)
+    successRes(res, { task }, 200, success_200);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, message.error_500)
+    errorRes(res, 500, error_500);
   }
 };
 
@@ -106,4 +149,5 @@ module.exports = {
   taskById,
   taskUpdate,
   taskDelete,
+  updateMultipleTasks,
 };
