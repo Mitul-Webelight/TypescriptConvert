@@ -40,10 +40,10 @@ const allTaskList = async (req, res) => {
     const taskResult = Task.find(filter).limit(limit).skip(skip).sort(sort);
     const task = await taskResult.exec();
 
-    res.status(200).json(task);
+    successRes(res, { task }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -54,10 +54,10 @@ const taskById = async (req, res) => {
     if (!task) {
       return res.status(404).json({ message: message.error_404 });
     }
-    res.status(200).json(task);
+    successRes(res, { task }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -78,10 +78,10 @@ const taskUpdate = async (req, res) => {
 
     await task.save();
 
-    res.status(200).json(task);
+    successRes(res, { task }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -93,10 +93,10 @@ const taskDelete = async (req, res) => {
       return res.status(404).json({ message: message.error_404 });
     }
 
-    res.status(200).json({ message: message.success_200, task });
+    successRes(res, {task}, 200, message.success_200)
   } catch (error) {
     console.error(error);
-    successRes(res, { data, statuscode, message });
+    errorRes(res, 500, message.error_500)
   }
 };
 

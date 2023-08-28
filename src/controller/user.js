@@ -4,6 +4,7 @@ const message = require('../util/messages');
 const sharp = require('sharp');
 const multer = require('multer');
 const { sendWelcomEmail } = require('../emails/account');
+const { successRes, errorRes } = require('../util/response');
 require('dotenv').config();
 
 const userAdd = async (req, res) => {
@@ -13,7 +14,7 @@ const userAdd = async (req, res) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res.status(400).json({ error: message.error_400 });
+      return errorRes(res, 400, message.error_400);
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -27,10 +28,10 @@ const userAdd = async (req, res) => {
     sendWelcomEmail(user.email, user.name);
     const token = await user.generateAuthToken();
     await user.save();
-    res.status(201).json({ message: message.success_201, user, token });
+    successRes(res, { user, token }, 201, message.success_201);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -41,21 +42,21 @@ const userLogin = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ error: message.error_401 });
+      return errorRes(res, 401, message.error_401);
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      return res.status(401).json({ error: message.error_401 });
+      return errorRes(res, 401, message.error_401);
     }
 
     const token = await user.generateAuthToken();
 
-    res.status(200).json({ user, token });
+    successRes(res, { user, token }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -87,10 +88,10 @@ const allUsersList = async (req, res) => {
   try {
     const users = await User.find();
 
-    res.status(200).json(users);
+    successRes(res, { users }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -99,12 +100,12 @@ const userById = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 400, message.error_400);
     }
-    res.status(200).json(user);
+    successRes(res, { user }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -113,7 +114,7 @@ const userUpdate = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 400, message.error_400);
     }
 
     const { name, email, password, age } = req.body;
@@ -127,10 +128,10 @@ const userUpdate = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: message.success_200, user });
+    successRes(res, { user }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -139,13 +140,13 @@ const userDelete = async (req, res) => {
     const user = await User.findByIdAndDelete(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 400, message.error_400);
     }
 
-    res.status(200).json({ message: message.success_200, user });
+    successRes(res, { user }, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -163,7 +164,8 @@ const upload = multer(
     },
   },
   (error, res, req, next) => {
-    res.status(400).send({ error: error.message });
+    console.log(error);
+    errorRes(res, 400, message.error_400);
   }
 );
 
@@ -175,15 +177,15 @@ const uploadAvatar = async (req, res) => {
       .png()
       .toBuffer();
     if (!user) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 400, message.error_400);
     }
 
     user.avatar = buffer;
     await user.save();
-    res.status(200).json({ message: message.success_upload });
+    successRes(res, { user }, 200, message.success_upload);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -192,14 +194,14 @@ const deleteAvatar = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 400, message.error_400);
     }
     user.avatar = undefined;
     await user.save();
-    res.status(200).json({ message: message.success_200 });
+    successRes(res, { user }, 200, message.success_200);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
@@ -208,13 +210,13 @@ const getUserAvatar = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user || !user.avatar) {
-      return res.status(404).json({ message: message.error_404 });
+      return errorRes(res, 400, message.error_400);
     }
     res.set('Content-Type', 'image/jpeg');
-    res.status(200).send(user.avatar);
+    successRes(res, user.avatar, 200, message.success_200);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: message.error_500 });
+    errorRes(res, 500, message.error_500);
   }
 };
 
