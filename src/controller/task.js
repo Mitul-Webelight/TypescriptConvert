@@ -119,8 +119,8 @@ const updateMultipleTasks = async (req, res) => {
 
       await task.save();
       updatedTasks.push(task);
-      successRes(res, { updatedTasks }, 200, success_200);
     }
+    successRes(res, { updatedTasks }, 200, success_200);
   } catch (error) {
     console.error(error);
     errorRes(res, 500, error_500);
