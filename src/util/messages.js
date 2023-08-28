@@ -1,14 +1,28 @@
-const message = {
-  success_201: 'Created',
-  success_200: 'Ok',
-  success_upload: 'Upload Successfully',
-  error_wordFileUpload: 'Please upload Word Documents',
-  error_imageFileUpload: 'Please upload Images',
-  error_pdfFileUpload: 'Please upload PDF Files',
-  error_400: 'Already Exist',
-  error_500: 'Internal Server Error',
-  error_404: 'Not Found',
-  error_401: 'Unauthorized or Invalid Credentials',
+export const messages = {
+  Ok: 'Ok',
+  Created: 'Created',
+  upload: 'Upload Successfully',
+  wordFileUpload: 'Please upload Word Documents',
+  imageFileUpload: 'Please upload Images',
+  pdfFileUpload: 'Please upload PDF Files',
+  Bad_Request: 'Already Exist',
+  Unauthorized: 'Unauthorized or Invalid Credentials',
+  Invalid_Credentials: 'Email or Password Incorrect',
+  Not_Found: 'Not Found',
+  Server_Error: 'Internal Server Error',
+  notFound: (value) => `${value} not found`,
 };
 
-module.exports = message;
+export const statusCode = {
+  Ok: 200,
+  Created: 201,
+  Bad_Request: 400,
+  Unauthorized: 401,
+  Not_Found: 404,
+  Internal_Server_Error: 500,
+};
+
+export const constant = {
+  user: 'USER',
+  task: 'TASK',
+};

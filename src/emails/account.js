@@ -1,16 +1,17 @@
-const formData = require('form-data');
-const Mailgun = require('mailgun.js');
-require('dotenv').config();
+import formData from 'form-data';
+import Mailgun from 'mailgun.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
-  username: 'MK',
-  key: 'f0f1531fb15355c546c1a21e0ed053bb-f0e50a42-fbf0f1fe',
+  username: process.env.USER_NAME,
+  key: process.env.API_KEY,
 });
 
-const sendWelcomEmail = async (email, name) => {
+export const sendWelcomEmail = async (email, name) => {
   try {
-    mg.messages.create('sandbox055f869138764373862cc60ad05ce79e.mailgun.org', {
+    mg.messages.create(process.env.MG_DOMAIN, {
       from: 'mitulk@webelight.co.in',
       to: email,
       subject: 'Thanks for Joining!',
@@ -20,8 +21,4 @@ const sendWelcomEmail = async (email, name) => {
   } catch (error) {
     console.log(error);
   }
-};
-
-module.exports = {
-  sendWelcomEmail,
 };

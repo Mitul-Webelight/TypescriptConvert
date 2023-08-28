@@ -1,15 +1,10 @@
-const Task = require('../models/task');
-const {
-  success_200,
-  success_201,
-  error_400,
-  error_404,
-  error_500,
-} = require('../util/messages');
-const { successRes, errorRes } = require('../util/response');
-require('dotenv').config();
+import Task from '../models/task.js';
+import { constant, messages, statusCode } from '../util/messages.js';
+import { successRes, errorRes } from '../util/response.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const taskAdd = async (req, res) => {
+export const taskAdd = async (req, res) => {
   try {
     const { description, completed } = req.body;
 
@@ -20,14 +15,14 @@ const taskAdd = async (req, res) => {
     });
 
     await task.save();
-    successRes(res, { task }, 201, success_201);
+    successRes(res, task, statusCode.Created, messages.Created);
   } catch (error) {
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
     console.error(error);
   }
 };
 
-const allTaskList = async (req, res) => {
+export const allTaskList = async (req, res) => {
   try {
     const completed = req.query.completed;
 
@@ -47,33 +42,41 @@ const allTaskList = async (req, res) => {
       .sort(sort)
       .exec();
 
-    successRes(res, { task }, 200, success_200);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const taskById = async (req, res) => {
+export const taskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
 
     if (!task) {
-      return errorRes(res, 404, error_404);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.task)
+      );
     }
-    successRes(res, { task }, 200, success_200);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const taskUpdate = async (req, res) => {
+export const taskUpdate = async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id);
 
     if (!task) {
-      return errorRes(res, 404, error_404);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.task)
+      );
     }
 
     const { description, completed } = req.body;
@@ -85,19 +88,23 @@ const taskUpdate = async (req, res) => {
 
     await task.save();
 
-    successRes(res, { task }, 200, success_200);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const updateMultipleTasks = async (req, res) => {
+export const updateMultipleTasks = async (req, res) => {
   try {
     const { tasks } = req.body;
 
     if (tasks.length === 0) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.task)
+      );
     }
 
     const updatedTasks = [];
@@ -106,7 +113,11 @@ const updateMultipleTasks = async (req, res) => {
       const task = await Task.findById(taskData.id);
 
       if (!task) {
-        return errorRes(res, 404, error_404);
+        return errorRes(
+          res,
+          statusCode.Not_Found,
+          messages.notFound(constant.task)
+        );
       }
 
       if (taskData.description !== undefined) {
@@ -120,33 +131,28 @@ const updateMultipleTasks = async (req, res) => {
       await task.save();
       updatedTasks.push(task);
     }
-    successRes(res, { updatedTasks }, 200, success_200);
+    successRes(res, updatedTasks, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const taskDelete = async (req, res) => {
+export const taskDelete = async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
 
     if (!task) {
-      return errorRes(res, 404, error_404);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.task)
+      );
     }
 
-    successRes(res, { task }, 200, success_200);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
-};
-
-module.exports = {
-  taskAdd,
-  allTaskList,
-  taskById,
-  taskUpdate,
-  taskDelete,
-  updateMultipleTasks,
 };

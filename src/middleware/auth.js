@@ -1,8 +1,11 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
-require('dotenv').config();
+import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
+import { messages, statusCode } from '../util/messages.js';
+import { errorRes } from '../util/response.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const auth = async (req, res, next) => {
+export default async (req, res, next) => {
   try {
     const token = req.header('Authorization').replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -20,8 +23,6 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     console.log(error);
-    res.status(401).json({ error: 'Please authenticate.' });
+    errorRes(res, statusCode.Unauthorized, messages.Unauthorized);
   }
 };
-
-module.exports = auth;

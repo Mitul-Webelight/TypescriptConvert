@@ -1,25 +1,25 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   taskAdd,
   allTaskList,
   taskById,
   taskUpdate,
   taskDelete,
   updateMultipleTasks,
-} = require('../controller/task');
-const auth = require('../middleware/auth');
+} from '../controller/task.js';
+import auth from '../middleware/auth.js';
 
 router.post('/tasks', auth, taskAdd);
 
 router.get('/alltasks', auth, allTaskList);
 
-router.get('/task/:id', auth, taskById);
-
-router.put('/task/:id', auth, taskUpdate);
+router
+  .route('/task/:id')
+  .get(auth, taskById)
+  .put(auth, taskUpdate)
+  .delete(auth, taskDelete);
 
 router.put('/multipletask', auth, updateMultipleTasks);
 
-router.delete('/task/:id', auth, taskDelete);
-
-module.exports = router;
+export default router;

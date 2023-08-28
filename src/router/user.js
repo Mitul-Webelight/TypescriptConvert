@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const auth = require('../middleware/auth');
-const {
+import auth from '../middleware/auth.js';
+import {
   userAdd,
   userLogin,
   userLogout,
@@ -14,7 +14,7 @@ const {
   deleteAvatar,
   getUserAvatar,
   upload,
-} = require('../controller/user');
+} from '../controller/user.js';
 
 router.post('/users', userAdd);
 
@@ -26,16 +26,16 @@ router.post('/user/logoutAll', auth, userLogoutAll);
 
 router.get('/allusers', auth, allUsersList);
 
-router.get('/user/:id', auth, userById);
+router
+  .route('/user/:id')
+  .get(auth, userById)
+  .put(auth, userUpdate)
+  .delete(auth, userDelete);
 
-router.put('/user/:id', auth, userUpdate);
+router
+  .route('/user/:id/avatar')
+  .post(auth, upload.single('avatar'), uploadAvatar)
+  .delete(auth, deleteAvatar)
+  .get(auth, getUserAvatar);
 
-router.delete('/user/:id', auth, userDelete);
-
-router.post('/user/:id/avatar', auth, upload.single('avatar'), uploadAvatar);
-
-router.delete('/user/:id/avatar', auth, deleteAvatar);
-
-router.get('/user/:id/avatar', auth, getUserAvatar);
-
-module.exports = router;
+export default router;

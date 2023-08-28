@@ -1,12 +1,7 @@
-const successRes = (res, data, statusCode, messageText) => {
-  res.status(statusCode).json({ message: messageText, data });
+export const successRes = (res, data, statusCode, message) => {
+  res.status(statusCode).json({ message: message, data });
 };
 
-const errorRes = (res, statusCode, messageText) => {
-  res.status(statusCode).json({ error: messageText });
-};
-
-module.exports = {
-  successRes,
-  errorRes,
+export const errorRes = (res, statusCode, message) => {
+  res.status(statusCode).json({ error: message });
 };

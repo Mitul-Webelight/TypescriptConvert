@@ -1,33 +1,26 @@
-const User = require('../models/user');
-const bcrypt = require('bcrypt');
-const {
-  success_200,
-  success_201,
-  error_400,
-  error_401,
-  error_500,
-  success_upload,
-  error_imageFileUpload,
-} = require('../util/messages');
-const sharp = require('sharp');
-const multer = require('multer');
-const { sendWelcomEmail } = require('../emails/account');
-const { successRes, errorRes } = require('../util/response');
-require('dotenv').config();
+import User from '../models/user.js';
+import bcrypt from 'bcrypt';
+import { messages, statusCode, constant } from '../util/messages.js';
+import sharp from 'sharp';
+import multer from 'multer';
+import { sendWelcomEmail } from '../emails/account.js';
+import { successRes, errorRes } from '../util/response.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const hashedPassword = async (password) => {
   const hashed = await bcrypt.hash(password, 10);
   return hashed;
 };
 
-const userAdd = async (req, res) => {
+export const userAdd = async (req, res) => {
   try {
     const { name, email, age, password } = req.body;
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return errorRes(res, 400, error_400);
+      return errorRes(res, statusCode.Bad_Request, messages.Bad_Request);
     }
 
     const hashed = await hashedPassword(password);
@@ -42,39 +35,47 @@ const userAdd = async (req, res) => {
     sendWelcomEmail(user.email, user.name);
     const token = await user.generateAuthToken();
     await user.save();
-    successRes(res, { user, token }, 201, success_201);
+    successRes(res, { user, token }, statusCode.Created, messages.Created);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const userLogin = async (req, res) => {
+export const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return errorRes(res, 401, error_401);
+      return errorRes(
+        res,
+        statusCode.Bad_Request,
+        messages.Invalid_Credentials
+      );
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      return errorRes(res, 401, error_401);
+      return errorRes(
+        res,
+        statusCode.Bad_Request,
+        messages.Invalid_Credentials
+      );
     }
 
     const token = await user.generateAuthToken();
 
-    successRes(res, { user, token }, 200, success_200);
+    successRes(res, { user, token }, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const userLogout = async (req, res) => {
+export const userLogout = async (req, res) => {
   try {
     req.user.tokens = req.user.tokens.filter((token) => {
       return token.token !== req.token;
@@ -87,7 +88,7 @@ const userLogout = async (req, res) => {
   }
 };
 
-const userLogoutAll = async (req, res) => {
+export const userLogoutAll = async (req, res) => {
   try {
     req.user.tokens = [];
 
@@ -98,37 +99,45 @@ const userLogoutAll = async (req, res) => {
   }
 };
 
-const allUsersList = async (req, res) => {
+export const allUsersList = async (req, res) => {
   try {
     const users = await User.find();
 
-    successRes(res, { users }, 200, success_200);
+    successRes(res, { users }, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const userById = async (req, res) => {
+export const userById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.user)
+      );
     }
-    successRes(res, { user }, 200, success_200);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const userUpdate = async (req, res) => {
+export const userUpdate = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.user)
+      );
     }
 
     const { name, email, password, age } = req.body;
@@ -144,29 +153,33 @@ const userUpdate = async (req, res) => {
 
     await user.save();
 
-    successRes(res, { user }, 200, success_200);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const userDelete = async (req, res) => {
+export const userDelete = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
 
     if (!user) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.user)
+      );
     }
 
-    successRes(res, { user }, 200, success_200);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const upload = multer(
+export const upload = multer(
   {
     limits: {
       fieldSize: 100000000,
@@ -181,11 +194,11 @@ const upload = multer(
   },
   (error, res, req, next) => {
     console.log(error);
-    errorRes(res, 400, error_400);
+    errorRes(res, statusCode.Not_Found, messages.notFound(constant.user));
   }
 );
 
-const uploadAvatar = async (req, res) => {
+export const uploadAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     const buffer = await sharp(req.file.buffer)
@@ -193,60 +206,57 @@ const uploadAvatar = async (req, res) => {
       .png()
       .toBuffer();
     if (!user) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.user)
+      );
     }
 
     user.avatar = buffer;
     await user.save();
-    successRes(res, { user }, 200, success_upload);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.log(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const deleteAvatar = async (req, res) => {
+export const deleteAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.user)
+      );
     }
     user.avatar = undefined;
     await user.save();
-    successRes(res, { user }, 200, success_200);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.log(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-const getUserAvatar = async (req, res) => {
+export const getUserAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
     if (!user || !user.avatar) {
-      return errorRes(res, 400, error_400);
+      return errorRes(
+        res,
+        statusCode.Not_Found,
+        messages.notFound(constant.user)
+      );
     }
     res.set('Content-Type', 'image/jpeg');
-    successRes(res, user.avatar, 200, success_200);
+    successRes(res, user.avatar, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
-    errorRes(res, 500, error_500);
+    errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
-};
-
-module.exports = {
-  userAdd,
-  userLogin,
-  userLogout,
-  userLogoutAll,
-  allUsersList,
-  userById,
-  userUpdate,
-  userDelete,
-  uploadAvatar,
-  deleteAvatar,
-  getUserAvatar,
-  upload,
 };

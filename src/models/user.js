@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import validator from 'validator';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const userSchema = mongoose.Schema(
   {
@@ -84,6 +85,4 @@ userSchema.methods.toJSON = function () {
   return userObject;
 };
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+export default mongoose.model('User', userSchema);
