@@ -15,7 +15,7 @@ export const taskAdd = async (req, res) => {
     });
 
     await task.save();
-    successRes(res, task, statusCode.Created, messages.Created);
+    successRes(res, task, messages.Created);
   } catch (error) {
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
     console.error(error);
@@ -42,7 +42,7 @@ export const allTaskList = async (req, res) => {
       .sort(sort)
       .exec();
 
-    successRes(res, task, statusCode.Ok, messages.Ok);
+    successRes(res, task, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
@@ -60,7 +60,7 @@ export const taskById = async (req, res) => {
         messages.notFound(constant.task)
       );
     }
-    successRes(res, task, statusCode.Ok, messages.Ok);
+    successRes(res, task, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
@@ -81,14 +81,14 @@ export const taskUpdate = async (req, res) => {
 
     const { description, completed } = req.body;
 
-    if (description && completed) {
+    if (description || completed) {
       task.description = description;
       task.completed = completed;
     }
 
     await task.save();
 
-    successRes(res, task, statusCode.Ok, messages.Ok);
+    successRes(res, task, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
@@ -99,7 +99,7 @@ export const updateMultipleTasks = async (req, res) => {
   try {
     const { tasks } = req.body;
 
-    if (tasks.length === 0) {
+    if (!tasks) {
       return errorRes(
         res,
         statusCode.Not_Found,
@@ -120,18 +120,15 @@ export const updateMultipleTasks = async (req, res) => {
         );
       }
 
-      if (taskData.description !== undefined) {
+      if (taskData.description || taskData.completed) {
         task.description = taskData.description;
-      }
-
-      if (taskData.completed !== undefined) {
         task.completed = taskData.completed;
       }
 
       await task.save();
       updatedTasks.push(task);
     }
-    successRes(res, updatedTasks, statusCode.Ok, messages.Ok);
+    successRes(res, updatedTasks, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
@@ -150,7 +147,7 @@ export const taskDelete = async (req, res) => {
       );
     }
 
-    successRes(res, task, statusCode.Ok, messages.Ok);
+    successRes(res, task, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
