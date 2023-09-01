@@ -7,8 +7,8 @@ import {
   taskUpdate,
   taskDelete,
   updateMultipleTasks,
-} from '../controller/task.js';
-import auth from '../middleware/auth.js';
+} from '../controller/task';
+import auth from '../middleware/auth';
 
 router.post('/tasks', auth, taskAdd);
 

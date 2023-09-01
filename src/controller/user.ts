@@ -1,19 +1,19 @@
-import User from '../models/user.js';
+import User from '../models/user';
 import bcrypt from 'bcrypt';
-import { messages, statusCode, constant } from '../util/messages.js';
+import { messages, statusCode, constant } from '../util/messages';
 import sharp from 'sharp';
 import multer from 'multer';
-import { sendWelcomEmail } from '../emails/account.js';
-import { successRes, errorRes } from '../util/response.js';
+import { sendWelcomEmail } from '../emails/account';
+import { successRes, errorRes } from '../util/response';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const hashedPassword = async (password) => {
+const hashedPassword = async (password: string) => {
   const hashed = await bcrypt.hash(password, 10);
   return hashed;
 };
 
-export const userAdd = async (req, res) => {
+export const userAdd = async (req: any, res: any) => {
   try {
     const { name, email, age, password } = req.body;
 
@@ -35,14 +35,14 @@ export const userAdd = async (req, res) => {
     sendWelcomEmail(user.email, user.name);
     const token = await user.generateAuthToken();
     await user.save();
-    successRes(res, { user, token }, messages.Created);
+    successRes(res, { user, token }, statusCode.Ok, messages.Created);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const userLogin = async (req, res) => {
+export const userLogin = async (req: any, res: any) => {
   try {
     const { email, password } = req.body;
 
@@ -68,16 +68,16 @@ export const userLogin = async (req, res) => {
 
     const token = await user.generateAuthToken();
 
-    successRes(res, { user, token }, messages.Ok);
+    successRes(res, { user, token }, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const userLogout = async (req, res) => {
+export const userLogout = async (req: any, res: any) => {
   try {
-    req.user.tokens = req.user.tokens.filter((token) => {
+    req.user.tokens = req.user.tokens.filter((token: any) => {
       return token.token !== req.token;
     });
 
@@ -88,7 +88,7 @@ export const userLogout = async (req, res) => {
   }
 };
 
-export const userLogoutAll = async (req, res) => {
+export const userLogoutAll = async (req: any, res: any) => {
   try {
     req.user.tokens = [];
 
@@ -99,18 +99,18 @@ export const userLogoutAll = async (req, res) => {
   }
 };
 
-export const allUsersList = async (req, res) => {
+export const allUsersList = async (req: any, res: any) => {
   try {
     const users = await User.find();
 
-    successRes(res, { users }, messages.Ok);
+    successRes(res, { users }, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const userById = async (req, res) => {
+export const userById = async (req: any, res: any) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -121,14 +121,14 @@ export const userById = async (req, res) => {
         messages.notFound(constant.user)
       );
     }
-    successRes(res, user, messages.Ok);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const userUpdate = async (req, res) => {
+export const userUpdate = async (req: any, res: any) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -153,14 +153,14 @@ export const userUpdate = async (req, res) => {
 
     await user.save();
 
-    successRes(res, user, messages.Ok);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const userDelete = async (req, res) => {
+export const userDelete = async (req: any, res: any) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
 
@@ -172,33 +172,27 @@ export const userDelete = async (req, res) => {
       );
     }
 
-    successRes(res, user, messages.Ok);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const upload = multer(
-  {
-    limits: {
-      fieldSize: 100000000,
-    },
-    fileFilter(req, file, cb) {
-      if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-        return cb(new Error(error_imageFileUpload));
-      }
-
-      cb(undefined, true);
-    },
+export const upload = multer({
+  limits: {
+    fieldSize: 100000000,
   },
-  (error, res, req, next) => {
-    console.log(error);
-    errorRes(res, statusCode.Not_Found, messages.notFound(constant.user));
-  }
-);
+  fileFilter(req: any, file: any, cb: any) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+      return cb(new Error());
+    }
 
-export const uploadAvatar = async (req, res) => {
+    cb(undefined, true);
+  },
+});
+
+export const uploadAvatar = async (req: any, res: any) => {
   try {
     const user = await User.findById(req.params.id);
     const buffer = await sharp(req.file.buffer)
@@ -215,14 +209,14 @@ export const uploadAvatar = async (req, res) => {
 
     user.avatar = buffer;
     await user.save();
-    successRes(res, user, messages.Ok);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.log(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const deleteAvatar = async (req, res) => {
+export const deleteAvatar = async (req: any, res: any) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -235,14 +229,14 @@ export const deleteAvatar = async (req, res) => {
     }
     user.avatar = undefined;
     await user.save();
-    successRes(res, user, messages.Ok);
+    successRes(res, user, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.log(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const getUserAvatar = async (req, res) => {
+export const getUserAvatar = async (req: any, res: any) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -254,7 +248,7 @@ export const getUserAvatar = async (req, res) => {
       );
     }
     res.set('Content-Type', 'image/jpeg');
-    successRes(res, user.avatar, messages.Ok);
+    successRes(res, user.avatar, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);

@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import auth from '../middleware/auth.js';
+import auth from '../middleware/auth';
 import {
   userAdd,
   userLogin,
@@ -14,7 +14,7 @@ import {
   deleteAvatar,
   getUserAvatar,
   upload,
-} from '../controller/user.js';
+} from '../controller/user';
 
 router.post('/users', userAdd);
 

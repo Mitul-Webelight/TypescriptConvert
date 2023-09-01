@@ -1,10 +1,14 @@
-import Task from '../models/task.js';
-import { constant, messages, statusCode } from '../util/messages.js';
-import { successRes, errorRes } from '../util/response.js';
+import Task from '../models/task';
+import { constant, messages, statusCode } from '../util/messages';
+import { successRes, errorRes } from '../util/response';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const taskAdd = async (req, res) => {
+interface Filtertypes {
+  completed?: boolean;
+}
+
+export const taskAdd = async (req: any, res: any) => {
   try {
     const { description, completed } = req.body;
 
@@ -15,18 +19,18 @@ export const taskAdd = async (req, res) => {
     });
 
     await task.save();
-    successRes(res, task, messages.Created);
+    successRes(res, task, statusCode.Ok, messages.Created);
   } catch (error) {
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
     console.error(error);
   }
-};
+}
 
-export const allTaskList = async (req, res) => {
+export const allTaskList = async (req: any, res: any) => {
   try {
     const completed = req.query.completed;
 
-    const filter = {};
+    const filter: Filtertypes = {};
 
     if (completed === 'true') {
       filter.completed = true;
@@ -42,14 +46,14 @@ export const allTaskList = async (req, res) => {
       .sort(sort)
       .exec();
 
-    successRes(res, task, messages.Ok);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const taskById = async (req, res) => {
+export const taskById = async (req: any, res: any) => {
   try {
     const task = await Task.findById(req.params.id);
 
@@ -60,14 +64,14 @@ export const taskById = async (req, res) => {
         messages.notFound(constant.task)
       );
     }
-    successRes(res, task, messages.Ok);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const taskUpdate = async (req, res) => {
+export const taskUpdate = async (req: any, res: any) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id);
 
@@ -88,18 +92,20 @@ export const taskUpdate = async (req, res) => {
 
     await task.save();
 
-    successRes(res, task, messages.Ok);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const updateMultipleTasks = async (req, res) => {
+export const updateMultipleTasks = async (req: any, res: any) => {
   try {
-    const { tasks } = req.body;
+    const { description, completed } = req.body;
 
-    if (!tasks) {
+    const task = await Task.findByIdAndUpdate({ _id: req.body });
+
+    if (!task) {
       return errorRes(
         res,
         statusCode.Not_Found,
@@ -107,35 +113,21 @@ export const updateMultipleTasks = async (req, res) => {
       );
     }
 
-    const updatedTasks = [];
-
-    for (const taskData of tasks) {
-      const task = await Task.findById(taskData.id);
-
-      if (!task) {
-        return errorRes(
-          res,
-          statusCode.Not_Found,
-          messages.notFound(constant.task)
-        );
-      }
-
-      if (taskData.description || taskData.completed) {
-        task.description = taskData.description;
-        task.completed = taskData.completed;
-      }
-
-      await task.save();
-      updatedTasks.push(task);
+    if (description || completed) {
+      task.description = task.description;
+      task.completed = task.completed;
     }
-    successRes(res, updatedTasks, messages.Ok);
+
+    await task.save();
+
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
   }
 };
 
-export const taskDelete = async (req, res) => {
+export const taskDelete = async (req: any, res: any) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
 
@@ -147,7 +139,7 @@ export const taskDelete = async (req, res) => {
       );
     }
 
-    successRes(res, task, messages.Ok);
+    successRes(res, task, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);

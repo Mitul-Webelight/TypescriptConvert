@@ -1,7 +1,7 @@
 import express from 'express';
-import userRouter from './router/user.js';
-import taskRouter from './router/task.js';
-import './db/mongoose.js';
+import userRouter from './router/user';
+import taskRouter from './router/task';
+import './db/mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 

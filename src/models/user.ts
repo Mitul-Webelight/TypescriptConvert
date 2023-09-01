@@ -1,10 +1,21 @@
-import mongoose from 'mongoose';
 import validator from 'validator';
-import jwt from 'jsonwebtoken';
+import jwt, { Secret } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
+import mongoose from 'mongoose';
 
-const userSchema = mongoose.Schema(
+interface IUser {
+  name: string;
+  email: string;
+  password: string;
+  age: number;
+  tokens: { token: string }[];
+  avatar?: Buffer | undefined;
+
+  generateAuthToken(): Promise<string>;
+}
+
+const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
       type: String,
@@ -17,7 +28,7 @@ const userSchema = mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
-      validate(value) {
+      validate(value: any) {
         if (!validator.isEmail(value)) {
           throw new Error('Email is invalid');
         }
@@ -28,7 +39,7 @@ const userSchema = mongoose.Schema(
       required: true,
       minlength: 6,
       trim: true,
-      validate(value) {
+      validate(value: any) {
         if (value.toLowerCase().includes('password')) {
           throw new Error('Password cannot contain "password"');
         }
@@ -37,7 +48,7 @@ const userSchema = mongoose.Schema(
     age: {
       type: Number,
       default: 0,
-      validate(value) {
+      validate(value: any) {
         if (value < 0) {
           throw new Error('Age must be a positive number');
         }
@@ -65,12 +76,11 @@ userSchema.methods.generateAuthToken = async function () {
   const user = this;
   const token = jwt.sign(
     { _id: user._id.toString() },
-    process.env.JWT_SECRET_KEY
+    process.env.JWT_SECRET_KEY as Secret
   );
 
   user.tokens = user.tokens.concat({ token });
   await user.save();
-
   return token;
 };
 
@@ -79,8 +89,6 @@ userSchema.methods.toJSON = function () {
   const userObject = user.toObject();
 
   delete userObject.password;
-  // delete userObject.tokens;
-  delete userObject.avatar;
 
   return userObject;
 };
