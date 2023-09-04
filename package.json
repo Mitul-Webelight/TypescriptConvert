@@ -1,15 +1,15 @@
 {
-  "name": "task-app-nodejs",
+  "name": "task-manager",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "nodemon src/index.mjs"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/index.ts",
+    "tsc": "tsc"
   },
   "keywords": [],
   "author": "",
-  "type": "module",
   "license": "ISC",
   "dependencies": {
     "@types/mongoose": "^5.11.97",

@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { messages, statusCode, constant } from '../util/messages';
 import sharp from 'sharp';
 import multer from 'multer';
-import { sendWelcomEmail } from '../emails/account';
+// import { sendWelcomEmail } from '../emails/account';
 import { successRes, errorRes } from '../util/response';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -32,7 +32,7 @@ export const userAdd = async (req: any, res: any) => {
       age,
     });
 
-    sendWelcomEmail(user.email, user.name);
+    // sendWelcomEmail(user.email, user.name);
     const token = await user.generateAuthToken();
     await user.save();
     successRes(res, { user, token }, statusCode.Ok, messages.Created);
