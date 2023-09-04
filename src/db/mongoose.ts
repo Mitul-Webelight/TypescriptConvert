@@ -1,15 +1,19 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
-mongoose.connect(process.env.MONGODB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const mongodbUrl = process.env.MONGODB_URL as string;
 
-const db = mongoose.connection;
+if (!mongodbUrl) {
+  throw new Error('MONGODB_URL environment variable is not defined');
+}
 
-db.on('error', console.error.bind(console, 'Connection error:'));
-db.once('open', () => {
-  console.log(process.env.MONGODB_CONNECTION);
-});
+mongoose
+  .connect(mongodbUrl)
+  .then(() => {
+    console.log(process.env.MONGODB_CONNECTION);
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });

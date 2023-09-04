@@ -10,7 +10,7 @@ export const messages = {
   Invalid_Credentials: 'Email or Password Incorrect',
   Not_Found: 'Not Found',
   Server_Error: 'Internal Server Error',
-  notFound: (value) => `${value} not found`,
+  notFound: (value : string) => `${value} not found`,
 };
 
 export const statusCode = {

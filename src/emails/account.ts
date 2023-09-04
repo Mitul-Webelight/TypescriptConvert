@@ -3,15 +3,19 @@ import Mailgun from 'mailgun.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const userName = process.env.USER_NAME as string
+const APIKey = process.env.API_KEY as string
+const domainName = process.env.MG_DOMAIN as string
+
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
-  username: process.env.USER_NAME,
-  key: process.env.API_KEY,
+  username: userName,
+  key: APIKey,
 });
 
-export const sendWelcomEmail = async (email, name) => {
+export const sendWelcomEmail = async (email: string, name: string) => {
   try {
-    mg.messages.create(process.env.MG_DOMAIN, {
+    mg.messages.create(domainName, {
       from: 'mitulk@webelight.co.in',
       to: email,
       subject: 'Thanks for Joining!',
