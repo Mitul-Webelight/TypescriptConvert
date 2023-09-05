@@ -1,10 +1,16 @@
 import mongoose from 'mongoose';
 
-const taskschema = new mongoose.Schema(
+interface Ttask {
+  description: string;
+  completed: boolean;
+  owner: mongoose.Schema.Types.ObjectId;
+}
+
+const taskschema = new mongoose.Schema<Ttask>(
   {
     description: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     completed: {

@@ -12,7 +12,7 @@ if (!mongodbUrl) {
 mongoose
   .connect(mongodbUrl)
   .then(() => {
-    console.log(process.env.MONGODB_CONNECTION);
+    console.log(process.env.MONGODB_CONNECTION as string);
   })
   .catch((error) => {
     console.error('Error connecting to MongoDB:', error);

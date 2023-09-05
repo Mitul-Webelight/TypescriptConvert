@@ -1,6 +1,7 @@
 import Task from '../models/task';
 import { constant, messages, statusCode } from '../util/messages';
 import { successRes, errorRes } from '../util/response';
+import { Request, Response } from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -8,14 +9,20 @@ interface Filtertypes {
   completed?: boolean;
 }
 
-export const taskAdd = async (req: any, res: any) => {
-  try {
-    const { description, completed } = req.body;
+interface TaskData {
+  description: string;
+  completed: boolean;
+}
 
+export const taskAdd = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { description, completed } = req.body as TaskData;
+
+    const userId = req.body.user._id;
     const task = new Task({
       description,
       completed,
-      owner: req.user._id,
+      owner: userId,
     });
 
     await task.save();
@@ -24,12 +31,14 @@ export const taskAdd = async (req: any, res: any) => {
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
     console.error(error);
   }
-}
+};
 
-export const allTaskList = async (req: any, res: any) => {
+export const allTaskList = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const completed = req.query.completed;
-
+    const completed = req.query.completed as string | undefined;
     const filter: Filtertypes = {};
 
     if (completed === 'true') {
@@ -53,7 +62,7 @@ export const allTaskList = async (req: any, res: any) => {
   }
 };
 
-export const taskById = async (req: any, res: any) => {
+export const taskById = async (req: Request, res: Response): Promise<void> => {
   try {
     const task = await Task.findById(req.params.id);
 
@@ -71,7 +80,10 @@ export const taskById = async (req: any, res: any) => {
   }
 };
 
-export const taskUpdate = async (req: any, res: any) => {
+export const taskUpdate = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id);
 
@@ -99,7 +111,10 @@ export const taskUpdate = async (req: any, res: any) => {
   }
 };
 
-export const updateMultipleTasks = async (req: any, res: any) => {
+export const updateMultipleTasks = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { description, completed } = req.body;
 
@@ -127,7 +142,10 @@ export const updateMultipleTasks = async (req: any, res: any) => {
   }
 };
 
-export const taskDelete = async (req: any, res: any) => {
+export const taskDelete = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
 

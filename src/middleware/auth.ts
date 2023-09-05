@@ -2,6 +2,7 @@ import jwt, { Secret, JwtPayload } from 'jsonwebtoken';
 import User from '../models/user';
 import { messages, statusCode } from '../util/messages';
 import { errorRes } from '../util/response';
+import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -9,15 +10,15 @@ interface DecodedJwtPayload extends JwtPayload {
   _id: string;
 }
 
-export default async (req: any, res: any, next: any) => {
+export default async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const tokenHeader = req.header('Authorization');
+    const tokenHeader = req.header('Authorization') as string;
 
     if (!tokenHeader) {
       throw new Error('Authorization header is missing');
     }
 
-    const token = tokenHeader.replace('Bearer ', '');
+    const token = tokenHeader.replace('Bearer ', '') as string;
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET_KEY as Secret
@@ -30,9 +31,12 @@ export default async (req: any, res: any, next: any) => {
     if (!user) {
       throw new Error();
     }
+    let storeToken = req.body;
+    let storeUser = req.body;
 
-    req.token = token;
-    req.user = user;
+    storeToken.token = token;
+    storeUser.user = user;
+
     next();
   } catch (error) {
     console.log(error);

@@ -6,14 +6,15 @@ import multer from 'multer';
 // import { sendWelcomEmail } from '../emails/account';
 import { successRes, errorRes } from '../util/response';
 import dotenv from 'dotenv';
+import { Request, Response } from 'express';
 dotenv.config();
 
-const hashedPassword = async (password: string) => {
+const hashedPassword = async (password: string): Promise<string> => {
   const hashed = await bcrypt.hash(password, 10);
   return hashed;
 };
 
-export const userAdd = async (req: any, res: any) => {
+export const userAdd = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, age, password } = req.body;
 
@@ -42,7 +43,7 @@ export const userAdd = async (req: any, res: any) => {
   }
 };
 
-export const userLogin = async (req: any, res: any) => {
+export const userLogin = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
@@ -75,31 +76,42 @@ export const userLogin = async (req: any, res: any) => {
   }
 };
 
-export const userLogout = async (req: any, res: any) => {
+export const userLogout = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    req.user.tokens = req.user.tokens.filter((token: any) => {
-      return token.token !== req.token;
+    const { user, token } = req.body;
+    user.tokens = user.tokens.filter((userToken: string) => {
+      return userToken !== token;
     });
 
-    await req.user.save();
+    await user.save();
     res.send();
   } catch (error) {
     res.status(500).send();
   }
 };
 
-export const userLogoutAll = async (req: any, res: any) => {
+export const userLogoutAll = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    req.user.tokens = [];
+    const { user } = req.body;
+    user.tokens = [];
 
-    await req.user.save();
+    await user.save();
     res.send();
   } catch (error) {
     res.status(500).send();
   }
 };
 
-export const allUsersList = async (req: any, res: any) => {
+export const allUsersList = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const users = await User.find();
 
@@ -110,7 +122,7 @@ export const allUsersList = async (req: any, res: any) => {
   }
 };
 
-export const userById = async (req: any, res: any) => {
+export const userById = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -128,7 +140,10 @@ export const userById = async (req: any, res: any) => {
   }
 };
 
-export const userUpdate = async (req: any, res: any) => {
+export const userUpdate = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -160,7 +175,10 @@ export const userUpdate = async (req: any, res: any) => {
   }
 };
 
-export const userDelete = async (req: any, res: any) => {
+export const userDelete = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
 
@@ -183,19 +201,26 @@ export const upload = multer({
   limits: {
     fieldSize: 100000000,
   },
-  fileFilter(req: any, file: any, cb: any) {
+  fileFilter(
+    req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback
+  ) {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
       return cb(new Error());
     }
 
-    cb(undefined, true);
+    cb(null, true);
   },
 });
 
-export const uploadAvatar = async (req: any, res: any) => {
+export const uploadAvatar = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const user = await User.findById(req.params.id);
-    const buffer = await sharp(req.file.buffer)
+    const buffer = await sharp(req.file?.buffer)
       .resize({ width: 300, height: 300 })
       .png()
       .toBuffer();
@@ -216,7 +241,10 @@ export const uploadAvatar = async (req: any, res: any) => {
   }
 };
 
-export const deleteAvatar = async (req: any, res: any) => {
+export const deleteAvatar = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -236,7 +264,10 @@ export const deleteAvatar = async (req: any, res: any) => {
   }
 };
 
-export const getUserAvatar = async (req: any, res: any) => {
+export const getUserAvatar = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const user = await User.findById(req.params.id);
 
