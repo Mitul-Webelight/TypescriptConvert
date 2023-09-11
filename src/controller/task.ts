@@ -3,6 +3,7 @@ import { constant, messages, statusCode } from '../util/messages';
 import { successRes, errorRes } from '../util/response';
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 dotenv.config();
 
 interface Filtertypes {
@@ -47,12 +48,18 @@ export const allTaskList = async (
       filter.completed = false;
     }
 
-    const { limit, skip, sortBy: sort } = req.query;
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string)
+      : undefined;
+    const skip = req.query.skip
+      ? parseInt(req.query.skip as string)
+      : undefined;
+    const sort = req.query.sort as string | undefined;
 
     const task = await Task.find(filter)
-      .limit(limit)
-      .skip(skip)
-      .sort(sort)
+      .limit(limit as number)
+      .skip(skip as number)
+      .sort(sort as string)
       .exec();
 
     successRes(res, task, statusCode.Ok, messages.Ok);
@@ -116,11 +123,9 @@ export const updateMultipleTasks = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { description, completed } = req.body;
+    const { tasks } = req.body;
 
-    const task = await Task.findByIdAndUpdate({ _id: req.body });
-
-    if (!task) {
+    if (!tasks) {
       return errorRes(
         res,
         statusCode.Not_Found,
@@ -128,14 +133,31 @@ export const updateMultipleTasks = async (
       );
     }
 
-    if (description || completed) {
-      task.description = task.description;
-      task.completed = task.completed;
+    const updatedTasks = [];
+
+    for (const taskData of tasks) {
+      const task = await Task.findById(taskData.id);
+
+      if (!task) {
+        return errorRes(
+          res,
+          statusCode.Not_Found,
+          messages.notFound(constant.task)
+        );
+      }
+
+      if (taskData.description !== undefined) {
+        task.description = taskData.description;
+      }
+      if (taskData.completed !== undefined) {
+        task.completed = taskData.completed;
+      }
+
+      await task.save();
+      updatedTasks.push(task);
     }
 
-    await task.save();
-
-    successRes(res, task, statusCode.Ok, messages.Ok);
+    successRes(res, updatedTasks, statusCode.Ok, messages.Ok);
   } catch (error) {
     console.error(error);
     errorRes(res, statusCode.Internal_Server_Error, messages.Server_Error);
